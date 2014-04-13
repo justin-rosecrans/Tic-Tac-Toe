@@ -1,0 +1,619 @@
+<html>
+    <head>
+        <title>Tic-Tac-Toe Game</title>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+
+        <style>
+            #gameBoard {
+                width: 20em;
+                height: 20em;
+                border: 1px solid #000;
+                margin: 0 auto;
+            }
+            .left, .center, .right {
+                border: 1px solid #000;
+                width: 6.6em;
+                height: 6.6em;
+                cursor: pointer;
+            }
+            .top-row, .center-row, .bottom-row {
+                display: inline-flex;
+            }
+            h1, #round {
+                text-align: center;
+            }
+            .new-game {
+                margin-top: 15px;
+                text-align: center;
+            }
+            .x:after {
+                content: "X";
+                font-size: 6em;
+                margin: 29px;
+            }
+            .o:after {
+                content: "O";
+                font-size: 6em;
+                margin: 29px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1> Let's play a game!</h1>
+
+        <div id="round">Round <strong>0</strong></div>
+
+        <div id="gameBoard">
+
+            <div class="top-row">
+                <div class="left"></div>
+                <div class="center"></div>
+                <div class="right"></div>
+            </div>
+
+            <div class="center-row">
+                <div class="left"></div>
+                <div class="center"></div>
+                <div class="right"></div>
+            </div>
+
+            <div class="bottom-row">
+                <div class="left"></div>
+                <div class="center"></div>
+                <div class="right"></div>
+            </div>
+
+        </div>
+
+        <div class="new-game">
+            <button type="button">New Game</button>
+        </div>
+
+        <script type="text/javascript">
+
+           //Global array
+            var gridArea = new Array(3);
+
+            //Used for the first move for AI.
+            var turnRound = 0;
+
+            var round;
+
+            for (var a=0; a < gridArea.length; a++) {
+                gridArea[a] = new Array();
+            }
+
+            //Populating a 2D global array with values from each box in game grid
+            gridArea[0][0] = $(".top-row .left");
+            gridArea[0][1] = $(".top-row .center");
+            gridArea[0][2] = $(".top-row .right");
+
+            gridArea[1][0] = $(".center-row .left");
+            gridArea[1][1] = $(".center-row .center");
+            gridArea[1][2] = $(".center-row .right");
+
+            gridArea[2][0] = $(".bottom-row .left");
+            gridArea[2][1] = $(".bottom-row .center");
+            gridArea[2][2] = $(".bottom-row .right");
+
+            $(".left, .center, .right").click(function() {
+                turnRound +=1;
+                var letter = $(this);
+                gridSearch(letter);
+
+                //Does the computer win?
+                if(lose()) {
+                    reset();
+                }
+
+                //Update the round for each turn made by X and O
+                round = document.getElementById("round");
+                round.innerHTML = ("Round " + "<strong>" + turnRound + "</strong>");
+            });
+            
+            //Resets the gameboard by finding and removing all X's and O's.     
+            $(".new-game").click(function() {
+                reset();
+            });
+
+            //Searches through the 2 dimensional gridArea to make sure the box cell is open for a character of "X" or "O"
+            function gridSearch (letter) {
+                for (var a =0; a< gridArea.length; a++) {
+                    for (var b =0; b<gridArea.length; b++){
+
+                        //Compares the gridArea object value to the parameter object value if either letter exists provide error else add the letter to gameboard
+                        if(gridArea[a][b].is(letter)) {
+                            if(gridArea[a][b].hasClass("x") || gridArea[a][b].hasClass("o")) {
+                                alert("Invalid move, this space is already taken.");
+                            }
+                            else {
+                                $(letter).addClass("x");
+                                compTurn(letter);
+                            }
+                        }
+                    }
+                }
+            }
+
+            //Computers turn to enter "O"
+            function compTurn (x) {
+                for (var a =0; a< gridArea.length; a++) {
+                    for (var b =0; b<gridArea.length; b++){
+                         if(!gridArea[a][b].is(x)) {
+
+                            //If X or O does not exist in the square block, call aiBrain function
+                            if(!(gridArea[a][b].hasClass("x") || gridArea[a][b].hasClass("o"))) {
+                                
+                                //Load the AI brain's intelligence
+                                aiBrain(gridArea[a][b])
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            //Conditionals for AI to always win
+            function aiBrain (x) {
+
+                //If center is not "X" and "O", place "O" there. - Possible first move for AI.
+                if((!gridArea[1][1].hasClass("x") && (!gridArea[1][1].hasClass("o")) && turnRound == 1)) {
+                    $(gridArea[1][1]).addClass("o");
+                    return true;
+                }
+                //If "X" is in the center put "O" on the top left corner.
+                else if(turnRound == 1) {
+                    $(gridArea[0][0]).addClass("o");
+                    return true;
+                }
+                else if(turnRound >= 2) {
+                    //AI takes iniative to try and win.
+                    if(!tryToWin()) {
+                        //If AI can't find a way to win it will try to block opponent.
+                        if(!tryToBlock()) {
+                        }
+                    }
+                }
+                else {
+                    turnRound +=1;
+                }
+                return true;
+                }
+
+                //Checks to see if computer wins.
+                function lose () {
+
+                    if(gridArea[0][0].hasClass("o") && gridArea[0][1].hasClass("o") && gridArea[0][2].hasClass("o")) {
+                        alert("Computer Wins!");
+                        return true;
+                    }
+                    else if(gridArea[1][0].hasClass("o") && gridArea[1][1].hasClass("o") && gridArea[1][2].hasClass("o")) {
+                        alert("Computer Wins!");
+                        return true;
+                    }
+                    else if(gridArea[2][0].hasClass("o") && gridArea[2][1].hasClass("o") && gridArea[2][2].hasClass("o")) {
+                        alert("Computer Wins!");
+                        return true;
+                    }
+                    else if(gridArea[0][0].hasClass("o") && gridArea[1][0].hasClass("o") && gridArea[2][0].hasClass("o")) {
+                        alert("Computer Wins!");
+                        return true;
+                    }
+                    else if(gridArea[0][1].hasClass("o") && gridArea[1][1].hasClass("o") && gridArea[2][1].hasClass("o")) {
+                        alert("Computer Wins!");
+                        return true;
+                    }
+                    else if(gridArea[0][2].hasClass("o") && gridArea[1][2].hasClass("o") && gridArea[2][2].hasClass("o")) {
+                        alert("Computer Wins!");
+                        return true;
+                    }
+                    else if(gridArea[0][0].hasClass("o") && gridArea[1][1].hasClass("o") && gridArea[2][2].hasClass("o")) {
+                        alert("Computer Wins!");
+                        return true;
+                    }
+                    else if(gridArea[0][2].hasClass("o") && gridArea[1][1].hasClass("o") && gridArea[2][0].hasClass("o")) {
+                        alert("Computer Wins!");
+                        return true;
+                    }
+
+                    //Draw if whole gameboard is filled with X's and O's.
+                    else if(turnRound == 5) {
+                        alert("Draw, no one wins!")
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+
+                // Resets the gameboard
+                function reset() {
+                    var x = $(".x");
+                    var o = $(".o");
+                    $("div").find(x).removeClass("x");
+                    $("div").find(o).removeClass("o");
+
+                    //Set round to 0
+                    turnRound = 0;
+                    round = document.getElementById("round");
+                    round.innerHTML = ("Round " + "<strong>" + turnRound + "</strong>");
+                }
+
+                function tryToWin() {
+                     //If "X" is top left and top center put "O" at top right.
+                    if(gridArea[0][0].hasClass("o") && gridArea[0][1].hasClass("o")) {
+                        if(!$(gridArea[0][2]).hasClass("o") && !$(gridArea[0][2]).hasClass("x")) {
+                            $(gridArea[0][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                   //If "X" is top left and center left put "O" at bottom left.
+                    if(gridArea[0][0].hasClass("o") && gridArea[1][0].hasClass("o")) {
+                        if(!$(gridArea[2][0]).hasClass("o") && !$(gridArea[2][0]).hasClass("x")) {
+                            $(gridArea[2][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is top right and center right put "O" at bottom right.
+                    if(gridArea[0][2].hasClass("o") && gridArea[1][2].hasClass("o")) {
+                        if(!$(gridArea[2][2]).hasClass("o") && !$(gridArea[2][2]).hasClass("x")) {
+                            $(gridArea[2][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is top right and bottom right put "O" at center right.
+                    if(gridArea[0][2].hasClass("o") && gridArea[2][2].hasClass("o")) {
+                        if(!$(gridArea[1][2]).hasClass("o") && !$(gridArea[1][2]).hasClass("x")) {
+                            $(gridArea[1][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is center top and center center put "O" at center bottom.
+                    if(gridArea[0][1].hasClass("o") && gridArea[1][1].hasClass("o")) {
+                        if(!$(gridArea[2][1]).hasClass("o") && !$(gridArea[2][1]).hasClass("x")) {
+                            $(gridArea[2][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom left and center bottom put "O" at bottom right.
+                    if(gridArea[2][0].hasClass("o") && gridArea[2][1].hasClass("o")) {
+                        if(!$(gridArea[2][2]).hasClass("o") && !$(gridArea[2][2]).hasClass("x")) {
+                            $(gridArea[2][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom left and center center put "O" at top right.
+                    if(gridArea[2][0].hasClass("o") && gridArea[1][1].hasClass("o")) {
+                        if(!$(gridArea[0][2]).hasClass("o") && !$(gridArea[0][2]).hasClass("x")) {
+                            $(gridArea[0][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is center top and center center put "O" at center bottom.
+                    if(gridArea[0][1].hasClass("o") && gridArea[1][1].hasClass("o")) {
+                        if(!$(gridArea[2][1]).hasClass("o") && !$(gridArea[2][1]).hasClass("x")) {
+                            $(gridArea[2][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                     //If "X" is  top right and center center put "O" at bottom left.
+                     if(gridArea[0][2].hasClass("o") && gridArea[1][1].hasClass("o")) {
+                         if(!$(gridArea[2][0]).hasClass("o") && !$(gridArea[2][0]).hasClass("x")) {
+                             $(gridArea[2][0]).addClass("o");
+                             return true;
+                         }
+                     }
+                    //If "X" is  center left and center center put "O" at center right..
+                    if(gridArea[1][0].hasClass("o") && gridArea[1][1].hasClass("o")) {
+                        if(!$(gridArea[1][2]).hasClass("o") && !$(gridArea[1][2]).hasClass("x")) {
+                            $(gridArea[1][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is  center center and center right put "O" at center left.
+                    if(gridArea[1][1].hasClass("o") && gridArea[1][2].hasClass("o")) {
+                        if(!$(gridArea[1][0]).hasClass("o") && !$(gridArea[1][0]).hasClass("x")) {
+                            $(gridArea[1][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is  top left and bottom left put "O" at center left.
+                    if(gridArea[0][0].hasClass("o") && gridArea[2][0].hasClass("o")) {
+                        if(!$(gridArea[1][0]).hasClass("o") && !$(gridArea[1][0]).hasClass("x")) {
+                            $(gridArea[1][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is center bottom and bottom right put "O" at bottom left.
+                    if(gridArea[2][1].hasClass("o") && gridArea[2][2].hasClass("o")) {
+                        if(!$(gridArea[2][0]).hasClass("o") && !$(gridArea[2][0]).hasClass("x")) {
+                            $(gridArea[2][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom right and center right put "O" at top right.
+                    if(gridArea[2][2].hasClass("o") && gridArea[1][2].hasClass("o")) {
+                        if(!$(gridArea[0][2]).hasClass("o") && !$(gridArea[0][2]).hasClass("x")) {
+                            $(gridArea[0][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[2][0].hasClass("o") && gridArea[2][2].hasClass("o")) {
+                        if(!$(gridArea[2][1]).hasClass("o") && !$(gridArea[2][1]).hasClass("x")) {
+                            $(gridArea[2][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][1].hasClass("o") && gridArea[2][1].hasClass("o")) {
+                        if(!$(gridArea[0][1]).hasClass("o") && !$(gridArea[0][1]).hasClass("x")) {
+                            $(gridArea[0][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[0][0].hasClass("o") && gridArea[0][2].hasClass("o")) {
+                        if(!$(gridArea[0][1]).hasClass("o") && !$(gridArea[0][1]).hasClass("x")) {
+                            $(gridArea[0][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[0][0].hasClass("o") && gridArea[1][1].hasClass("o")) {
+                        if(!$(gridArea[2][2]).hasClass("o") && !$(gridArea[2][2]).hasClass("x")) {
+                            $(gridArea[2][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[2][2].hasClass("o") && gridArea[1][1].hasClass("o")) {
+                        if(!$(gridArea[0][0]).hasClass("o") && !$(gridArea[0][0]).hasClass("x")) {
+                            $(gridArea[0][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][1].hasClass("o") && gridArea[2][1].hasClass("o")) {
+                        if(!$(gridArea[1][0]).hasClass("o") && !$(gridArea[1][0]).hasClass("x")) {
+                            $(gridArea[1][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][1].hasClass("o") && gridArea[0][1].hasClass("o")) {
+                        if(!$(gridArea[2][0]).hasClass("o") && !$(gridArea[2][0]).hasClass("x")) {
+                            $(gridArea[2][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][1].hasClass("o") && gridArea[0][1].hasClass("o") && gridArea[2][0].hasClass("o")) {
+                        if(!$(gridArea[2][2]).hasClass("o") && !$(gridArea[2][2]).hasClass("x")) {
+                            $(gridArea[2][2]).addClass("o");
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
+                function tryToBlock() {
+                     //If "X" is top left and top center put "O" at top right.
+                    if(gridArea[0][0].hasClass("x") && gridArea[0][1].hasClass("x")) {
+                        if(!$(gridArea[0][2]).hasClass("o") && !$(gridArea[0][2]).hasClass("x")) {
+                            $(gridArea[0][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                   //If "X" is top left and center left put "O" at bottom left.
+                    if(gridArea[0][0].hasClass("x") && gridArea[1][0].hasClass("x")) {
+                        if(!$(gridArea[2][0]).hasClass("o") && !$(gridArea[2][0]).hasClass("x")) {
+                            $(gridArea[2][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is top right and center right put "O" at bottom right.
+                    if(gridArea[0][2].hasClass("x") && gridArea[1][2].hasClass("x")) {
+                        if(!$(gridArea[2][2]).hasClass("o") && !$(gridArea[2][2]).hasClass("x")) {
+                            $(gridArea[2][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is top right and bottom right put "O" at center right.
+                    if(gridArea[0][2].hasClass("x") && gridArea[2][2].hasClass("x")) {
+                        if(!$(gridArea[1][2]).hasClass("o") && !$(gridArea[1][2]).hasClass("x")) {
+                            $(gridArea[1][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is center top and center center put "O" at center bottom.
+                    if(gridArea[0][1].hasClass("x") && gridArea[1][1].hasClass("x")) {
+                        if(!$(gridArea[2][1]).hasClass("o") && !$(gridArea[2][1]).hasClass("x")) {
+                            $(gridArea[2][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom left and center bottom put "O" at bottom right.
+                    if(gridArea[2][0].hasClass("x") && gridArea[2][1].hasClass("x")) {
+                        if(!$(gridArea[2][2]).hasClass("o") && !$(gridArea[2][2]).hasClass("x")) {
+                            $(gridArea[2][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom left and center center put "O" at top right.
+                    if(gridArea[2][0].hasClass("x") && gridArea[1][1].hasClass("x")) {
+                        if(!$(gridArea[0][2]).hasClass("o") && !$(gridArea[0][2]).hasClass("x")) {
+                            $(gridArea[0][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is center top and center center put "O" at center bottom.
+                    if(gridArea[0][1].hasClass("x") && gridArea[1][1].hasClass("x")) {
+                        if(!$(gridArea[2][1]).hasClass("o") && !$(gridArea[2][1]).hasClass("x")) {
+                            $(gridArea[2][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                     //If "X" is  top right and center center put "O" at bottom left.
+                     if(gridArea[0][2].hasClass("x") && gridArea[1][1].hasClass("x")) {
+                         if(!$(gridArea[2][0]).hasClass("o") && !$(gridArea[2][0]).hasClass("x")) {
+                             $(gridArea[2][0]).addClass("o");
+                             return true;
+                         }
+                     }
+                    //If "X" is  center left and center center put "O" at center right..
+                    if(gridArea[1][0].hasClass("x") && gridArea[1][1].hasClass("x")) {
+                        if(!$(gridArea[1][2]).hasClass("o") && !$(gridArea[1][2]).hasClass("x")) {
+                            $(gridArea[1][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is  center center and center right put "O" at center left.
+                    if(gridArea[1][1].hasClass("x") && gridArea[1][2].hasClass("x")) {
+                        if(!$(gridArea[1][0]).hasClass("o") && !$(gridArea[1][0]).hasClass("x")) {
+                            $(gridArea[1][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is  top left and bottom left put "O" at center left.
+                    if(gridArea[0][0].hasClass("x") && gridArea[2][0].hasClass("x")) {
+                        if(!$(gridArea[1][0]).hasClass("o") && !$(gridArea[1][0]).hasClass("x")) {
+                            $(gridArea[1][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is center bottom and bottom right put "O" at bottom left.
+                    if(gridArea[2][1].hasClass("x") && gridArea[2][2].hasClass("x")) {
+                        if(!$(gridArea[2][0]).hasClass("o") && !$(gridArea[2][0]).hasClass("x")) {
+                            $(gridArea[2][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom right and center right put "O" at top right.
+                    if(gridArea[2][2].hasClass("x") && gridArea[1][2].hasClass("x")) {
+                        if(!$(gridArea[0][2]).hasClass("o") && !$(gridArea[0][2]).hasClass("x")) {
+                            $(gridArea[0][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[2][0].hasClass("x") && gridArea[2][2].hasClass("x")) {
+                        if(!$(gridArea[2][1]).hasClass("o") && !$(gridArea[2][1]).hasClass("x")) {
+                            $(gridArea[2][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][1].hasClass("x") && gridArea[2][1].hasClass("x")) {
+                        if(!$(gridArea[0][1]).hasClass("o") && !$(gridArea[0][1]).hasClass("x")) {
+                            $(gridArea[0][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[0][0].hasClass("x") && gridArea[0][2].hasClass("x")) {
+                        if(!$(gridArea[0][1]).hasClass("o") && !$(gridArea[0][1]).hasClass("x")) {
+                            $(gridArea[0][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][1].hasClass("x") && gridArea[2][2].hasClass("x")) {
+                        if(!$(gridArea[0][1]).hasClass("o") && !$(gridArea[0][1]).hasClass("x")) {
+                            $(gridArea[0][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[0][1].hasClass("x") && gridArea[0][2].hasClass("x")) {
+                        if(!$(gridArea[0][0]).hasClass("o") && !$(gridArea[0][0]).hasClass("x")) {
+                            $(gridArea[0][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][0].hasClass("x") && gridArea[1][2].hasClass("x")) {
+                        if(!$(gridArea[0][0]).hasClass("o") && !$(gridArea[0][0]).hasClass("x")) {
+                            $(gridArea[0][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][2].hasClass("x") && gridArea[2][1].hasClass("x")) {
+                        if(!$(gridArea[0][0]).hasClass("o") && !$(gridArea[0][0]).hasClass("x")) {
+                            $(gridArea[0][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[0][0].hasClass("x") && gridArea[2][2].hasClass("x")) {
+                        if(!$(gridArea[2][0]).hasClass("o") && !$(gridArea[2][0]).hasClass("x")) {
+                            $(gridArea[2][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[0][2].hasClass("x") && gridArea[2][0].hasClass("x")) {
+                        if(!$(gridArea[0][0]).hasClass("o") && !$(gridArea[0][0]).hasClass("x")) {
+                            $(gridArea[0][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[0][2].hasClass("x") && gridArea[1][0].hasClass("x")) {
+                        if(!$(gridArea[2][2]).hasClass("o") && !$(gridArea[2][2]).hasClass("x")) {
+                            $(gridArea[2][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[0][2].hasClass("x") && gridArea[2][1].hasClass("x")) {
+                        if(!$(gridArea[0][0]).hasClass("o") && !$(gridArea[0][0]).hasClass("x")) {
+                            $(gridArea[0][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][0].hasClass("x") && gridArea[0][1].hasClass("x")) {
+                        if(!$(gridArea[2][0]).hasClass("o") && !$(gridArea[2][0]).hasClass("x")) {
+                            $(gridArea[2][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[0][0].hasClass("x") && gridArea[1][2].hasClass("x")) {
+                        if(!$(gridArea[0][1]).hasClass("o") && !$(gridArea[0][1]).hasClass("x")) {
+                            $(gridArea[0][1]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[0][1].hasClass("x") && gridArea[1][2].hasClass("x")) {
+                        if(!$(gridArea[0][2]).hasClass("o") && !$(gridArea[0][2]).hasClass("x")) {
+                            $(gridArea[0][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][0].hasClass("x") && gridArea[2][1].hasClass("x")) {
+                        if(!$(gridArea[2][0]).hasClass("o") && !$(gridArea[2][0]).hasClass("x")) {
+                            $(gridArea[2][0]).addClass("o");
+                            return true;
+                        }
+                    }
+                    //If "X" is bottom leftt and bottom right put "O" at bottom center.1
+                    if(gridArea[1][0].hasClass("x") && gridArea[2][1].hasClass("x") && gridArea[0][2].hasClass("x")) {
+                        if(!$(gridArea[2][2]).hasClass("o") && !$(gridArea[2][2]).hasClass("x")) {
+                            $(gridArea[2][2]).addClass("o");
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+        </script>
+
+    </body>
+</html>
